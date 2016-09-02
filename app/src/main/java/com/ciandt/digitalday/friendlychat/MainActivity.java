@@ -1,17 +1,26 @@
 package com.ciandt.digitalday.friendlychat;
 
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v4.widget.ContentLoadingProgressBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -22,9 +31,10 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
     public static final String MESSAGES_CHILD = "messages";
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     private FirebaseUser firebaseUser;
     private FirebaseAuth firebaseAuth;
@@ -36,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText messageEditText;
     private ContentLoadingProgressBar progressBar;
     private ChildEventListener childEventListener;
+    private GoogleApiClient mGoogleApiClient;
 
 
     @Override
@@ -59,6 +70,11 @@ public class MainActivity extends AppCompatActivity {
         messageReference = FirebaseDatabase.getInstance()
                 .getReference().child(MESSAGES_CHILD);
 
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
+                .addApi(Auth.GOOGLE_SIGN_IN_API)
+                .build();
+
         initView();
     }
 
@@ -77,7 +93,38 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.sign_out_menu:
+                signOut();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void signOut() {
+        firebaseAuth.signOut();
+        Auth.GoogleSignInApi.signOut(mGoogleApiClient);
+        firebaseUser = null;
+        username = "ANONYMOUS";
+        photoUrl = null;
+        startActivity(new Intent(this, SignInActivity.class));
+        finish();
+    }
+
     private void initView() {
+
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         layoutManager.setStackFromEnd(true);
@@ -154,4 +201,8 @@ public class MainActivity extends AppCompatActivity {
         messageReference.addChildEventListener(childEventListener);
     }
 
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.d(TAG, "onConnectionFailed:" + connectionResult);
+    }
 }
