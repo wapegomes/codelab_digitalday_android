@@ -11,7 +11,7 @@ public class Message {
     private String name;
     private String avatar;
     private String photo;
-    private int typeMessage;
+    private String typeMessage;
 
     public Message() {
     }
@@ -20,7 +20,7 @@ public class Message {
         this.text = text;
         this.name = name;
         this.avatar = avatar;
-        this.typeMessage = 1;
+        this.typeMessage = "message";
     }
 
     public String getId() {
@@ -63,11 +63,11 @@ public class Message {
         this.photo = photo;
     }
 
-    public int getTypeMessage() {
+    public String getTypeMessage() {
         return typeMessage;
     }
 
-    public void setTypeMessage(int typeMessage) {
+    public void setTypeMessage(String typeMessage) {
         this.typeMessage = typeMessage;
     }
 }

@@ -182,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         message.setName(username);
         message.setAvatar(photoUrl);
         message.setPhoto(photo.toString());
-        message.setTypeMessage(2);
+        message.setTypeMessage("photo");
         messageReference.push().setValue(message);
     }
 

@@ -59,7 +59,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
                     .into(holder.messengerImageView);
         }
 
-        if (message.getTypeMessage() == 2) {
+        if (getType(message) == 2) {
             Glide.with(context).load(message.getPhoto())
                     .into(holder.messageImageView);
         }
@@ -76,7 +76,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
 
     @Override
     public int getItemViewType(int position) {
-        return items.get(position).getTypeMessage();
+        return getType(items.get(position));
     }
 
     public Message getItem(int position) {
@@ -118,6 +118,15 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             messengerImageView = (ImageView)itemView.findViewById(R.id.messengerImageView);
             messageImageView = (ImageView)itemView.findViewById(R.id.messagePhoto);
 
+        }
+    }
+
+    private int getType(Message message) {
+        switch (message.getTypeMessage()) {
+            case "photo":
+                return 2;
+            default:
+                return 1;
         }
     }
 }
