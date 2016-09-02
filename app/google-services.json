@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "742485955686",
+    "firebase_url": "https://digitalday-aba51.firebaseio.com",
+    "project_id": "digitalday-aba51",
+    "storage_bucket": "digitalday-aba51.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:742485955686:android:c64d52ab0cce4e09",
+        "android_client_info": {
+          "package_name": "com.ciandt.digitalday.friendlychat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "742485955686-k4tigucscs29bmt14pht1465m58aa2b1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ciandt.digitalday.friendlychat",
+            "certificate_hash": "51FD5D2EF41CBEF3B840B82F60EAD406888CA2E7"
+          }
+        },
+        {
+          "client_id": "742485955686-kdl2jccj4mkmen2p6ha0h5ho08odsble.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDgf2ejxK8XvSr3zczDSc2tGGQLxnoL37w"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "742485955686-kdl2jccj4mkmen2p6ha0h5ho08odsble.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
