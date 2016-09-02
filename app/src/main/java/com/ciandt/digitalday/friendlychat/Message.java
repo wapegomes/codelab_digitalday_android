@@ -9,15 +9,18 @@ public class Message {
     private String id;
     private String text;
     private String name;
-    private String photoUrl;
+    private String avatar;
+    private String photo;
+    private int typeMessage;
 
     public Message() {
     }
 
-    public Message(String text, String name, String photoUrl) {
+    public Message(String text, String name, String avatar) {
         this.text = text;
         this.name = name;
-        this.photoUrl = photoUrl;
+        this.avatar = avatar;
+        this.typeMessage = 1;
     }
 
     public String getId() {
@@ -44,11 +47,27 @@ public class Message {
         this.name = name;
     }
 
-    public String getPhotoUrl() {
-        return photoUrl;
+    public String getAvatar() {
+        return avatar;
     }
 
-    public void setPhotoUrl(String photoUrl) {
-        this.photoUrl = photoUrl;
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
+    public String getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
+    }
+
+    public int getTypeMessage() {
+        return typeMessage;
+    }
+
+    public void setTypeMessage(int typeMessage) {
+        this.typeMessage = typeMessage;
     }
 }

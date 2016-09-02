@@ -1,6 +1,10 @@
 package com.ciandt.digitalday.friendlychat;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.widget.ContentLoadingProgressBar;
 import android.support.v7.app.AppCompatActivity;
@@ -17,10 +21,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -28,13 +35,18 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
     public static final String MESSAGES_CHILD = "messages";
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final int REQUEST_IMAGE_SELECTOR = 999;
 
     private FirebaseUser firebaseUser;
     private FirebaseAuth firebaseAuth;
@@ -47,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     private ContentLoadingProgressBar progressBar;
     private ChildEventListener childEventListener;
     private GoogleApiClient mGoogleApiClient;
+    private FirebaseStorage firebaseStorage;
 
 
     @Override
@@ -56,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
+        firebaseStorage = FirebaseStorage.getInstance();
 
         if (firebaseUser == null) {
             startActivity(new Intent(this, SignInActivity.class));
@@ -91,6 +105,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         if (childEventListener != null) {
             messageReference.removeEventListener(childEventListener);
         }
+
+        adapter.clear();
     }
 
     @Override
@@ -109,6 +125,65 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
+            String[] filePathColumn = { MediaStore.Images.Media.DATA };
+            Cursor cursor = getContentResolver().query(data.getData(), filePathColumn, null, null, null);
+            if (cursor == null || cursor.getCount() < 1) {
+                return;
+            }
+            cursor.moveToFirst();
+            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+            if(columnIndex < 0) { // no column index
+                return;
+            }
+            File currentPhoto = new File(cursor.getString(columnIndex));
+            cursor.close();
+
+            uploadPhoto(currentPhoto);
+        }
+
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void uploadPhoto(File photo) {
+
+        progressBar.show();
+
+        Uri file = Uri.fromFile(photo);
+
+        // Create a firebaseStorage reference from our app
+        StorageReference storageRef = firebaseStorage.getReferenceFromUrl("gs://digitalday-aba51.appspot.com");
+
+        // Create a reference to "photo.jpg"
+        StorageReference photoRef = storageRef.child(file.getLastPathSegment());
+
+        photoRef.putFile(file).addOnFailureListener(this, new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                progressBar.hide();
+                Log.d(TAG, e.getMessage(), e);
+            }
+        }).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Uri uri = taskSnapshot.getDownloadUrl();
+                sendMessageWithPhoto(uri);
+            }
+        });
+    }
+
+    private void sendMessageWithPhoto(Uri photo) {
+        Message message = new Message();
+        message.setName(username);
+        message.setAvatar(photoUrl);
+        message.setPhoto(photo.toString());
+        message.setTypeMessage(2);
+        messageReference.push().setValue(message);
     }
 
     private void signOut() {
@@ -134,6 +209,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         recyclerView.setAdapter(adapter);
 
         progressBar = (ContentLoadingProgressBar) findViewById(R.id.progressBar);
+
+        ImageButton btnGallery = (ImageButton)findViewById(R.id.open_gallery);
+        btnGallery.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dispatchPhotoSelectionIntent();
+            }
+        });
 
         configSendButton();
 
@@ -182,6 +265,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 progressBar.hide();
                 Message message = dataSnapshot.getValue(Message.class);
+                message.setId(dataSnapshot.getKey());
                 adapter.add(message);
             }
 
@@ -204,5 +288,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Log.d(TAG, "onConnectionFailed:" + connectionResult);
+    }
+
+    private void dispatchPhotoSelectionIntent() {
+        Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        this.startActivityForResult(galleryIntent, REQUEST_IMAGE_SELECTOR);
     }
 }

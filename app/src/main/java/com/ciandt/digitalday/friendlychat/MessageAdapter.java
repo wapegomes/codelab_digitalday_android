@@ -2,7 +2,6 @@ package com.ciandt.digitalday.friendlychat;
 
 import android.content.Context;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.ListPopupWindow;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,7 +32,15 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
 
     @Override
     public MessageAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View viewRoot = layoutInflater.inflate(R.layout.item_message, parent, false);
+        View viewRoot;
+
+        if (viewType == 2) {
+            viewRoot = layoutInflater.inflate(R.layout.item_photo, parent, false);
+        }
+        else {
+            viewRoot = layoutInflater.inflate(R.layout.item_message, parent, false);
+        }
+
         ViewHolder viewHolder = new ViewHolder(viewRoot);
         return viewHolder;
     }
@@ -41,16 +48,23 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     @Override
     public void onBindViewHolder(MessageAdapter.ViewHolder holder, int position) {
         Message message = getItem(position);
-        holder.messageTextView.setText(message.getText());
         holder.messengerTextView.setText(message.getName());
 
-        if (message.getPhotoUrl() == null) {
+        if (message.getAvatar() == null) {
             holder.messengerImageView.setImageDrawable(ContextCompat.getDrawable(context,
                     R.drawable.ic_account_circle_black_36dp));
         } else {
             Glide.with(context)
-                    .load(message.getPhotoUrl())
+                    .load(message.getAvatar())
                     .into(holder.messengerImageView);
+        }
+
+        if (message.getTypeMessage() == 2) {
+            Glide.with(context).load(message.getPhoto())
+                    .into(holder.messageImageView);
+        }
+        else {
+            holder.messageTextView.setText(message.getText());
         }
 
     }
@@ -58,6 +72,11 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     @Override
     public int getItemCount() {
         return items.size();
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return items.get(position).getTypeMessage();
     }
 
     public Message getItem(int position) {
@@ -79,10 +98,15 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         notifyItemInserted(index);
     }
 
+    public void clear() {
+        items.clear();
+        notifyDataSetChanged();
+    }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView messageTextView;
+        ImageView messageImageView;
         TextView messengerTextView;
         ImageView messengerImageView;
 
@@ -92,6 +116,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             messageTextView = (TextView)itemView.findViewById(R.id.messageTextView);
             messengerTextView = (TextView)itemView.findViewById(R.id.messengerTextView);
             messengerImageView = (ImageView)itemView.findViewById(R.id.messengerImageView);
+            messageImageView = (ImageView)itemView.findViewById(R.id.messagePhoto);
 
         }
     }
